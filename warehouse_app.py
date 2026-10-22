@@ -25,6 +25,7 @@ def run(input_file, output_file, max_qty=6, distance=1):
     report = namespace['create_consolidation_report'](result, groups)
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         namespace['write_warehouse_sheet'](writer, result, groups)
+        namespace['write_capacity_sheet'](writer, original)
         for name, frame in [('Товары', result), ('План перемещений', report),
                             ('Требуют сверки', invalid), ('Статистика', pd.DataFrame([stats]))]:
             frame.to_excel(writer, sheet_name=name, index=False)
