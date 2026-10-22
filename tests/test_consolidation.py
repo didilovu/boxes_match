@@ -64,5 +64,41 @@ class ConsolidationTests(unittest.TestCase):
         self.assertEqual(namespace['parse_address']('б1.02.03'), ('Б1', 2))
 
 
+    def test_warehouse_sheet_has_only_movement_groups_and_full_totals(self):
+        import tempfile
+        from openpyxl import load_workbook
+        result, _, _, groups = self.run_plan([
+            row(1, 'a', qty=2), row(2, 'a', qty=7),
+            row(3, 'z', sector='unrelated', qty=8)])
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'report.xlsx'
+            with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                namespace['write_warehouse_sheet'](writer, result, groups)
+            book = load_workbook(path)
+            self.assertEqual(book.sheetnames[0], 'Для склада')
+            sheet = book['Для склада']
+            self.assertEqual(list(sheet.values), [
+                ('признак объединения', 'Адрес', 'Тара', 'Сумма по количеству', 'куда'),
+                (1, None, None, 9, None),
+                (1, 'B3-01.02.03', 2, 7, 'да'),
+                (1, 'B3-01.02.03', 1, 2, None)])
+            self.assertEqual(sheet['A2'].fill.fgColor.rgb, '00BFBFBF')
+            self.assertEqual(sheet['A3'].fill.fgColor.rgb, '00E2F0D9')
+            self.assertEqual(sheet.freeze_panes, 'A2')
+            book.close()
+
+    def test_warehouse_sheet_without_moves_has_only_header(self):
+        import tempfile
+        from openpyxl import load_workbook
+        result, _, _, groups = self.run_plan([row(1, 'a')])
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'empty.xlsx'
+            with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                namespace['write_warehouse_sheet'](writer, result, groups)
+            book = load_workbook(path)
+            self.assertEqual(book['Для склада'].max_row, 1)
+            book.close()
+
+
 if __name__ == '__main__':
     unittest.main()

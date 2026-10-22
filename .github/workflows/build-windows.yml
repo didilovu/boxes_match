@@ -28,7 +28,7 @@ jobs:
         run: |
           $process = Start-Process -FilePath dist/BoxesMatch.exe -ArgumentList '--smoke-test shlop.xlsx smoke-result.xlsx' -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Executable failed: $($process.ExitCode)" }
-          python -c "import pandas as pd; x=pd.read_excel('smoke-result.xlsx',sheet_name=None); original=pd.read_excel('shlop.xlsx'); assert len(x['Товары'])+len(x['Требуют сверки'])==len(original); assert x['Товары']['Количество'].sum()+x['Требуют сверки']['Количество'].sum()==original['Количество'].sum(); assert x['Статистика']['перемещено_тар'].iloc[0]>0"
+          python -c "import pandas as pd; x=pd.read_excel('smoke-result.xlsx',sheet_name=None); original=pd.read_excel('shlop.xlsx'); assert len(x['Товары'])+len(x['Требуют сверки'])==len(original); assert x['Товары']['Количество'].sum()+x['Требуют сверки']['Количество'].sum()==original['Количество'].sum(); assert x['Статистика']['перемещено_тар'].iloc[0]>0; assert 'Для склада' in x; assert (x['Для склада']['куда']=='да').sum()==x['Статистика']['создано_групп'].iloc[0]"
       - uses: actions/upload-artifact@v4
         with:
           name: BoxesMatch-Windows
