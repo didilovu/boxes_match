@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-notebook = json.loads((Path(__file__).resolve().parents[1] / 'shlop.ipynb').read_text())
+notebook = json.loads((Path(__file__).resolve().parents[1] / 'shlop.ipynb').read_text(encoding='utf-8'))
 namespace = {}
 exec(''.join(notebook['cells'][1]['source']), namespace)
 pd = namespace['pd']
